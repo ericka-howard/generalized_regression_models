@@ -1,0 +1,108 @@
+---
+title: "problem1"
+author: "Ericka Smith"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(MASS)
+library(magrittr)
+library(ggpubr)
+```
+
+```{r data}
+corn <- read.table("~/generalized_regression_models/hw2/corn.txt", quote="\"", comment.char="")
+names(corn) <- c("amt_fert", "block_num", "obs_yield")
+corn$block_num %<>% factor()
+```
+
+### Part A
+
+```{r}
+summary(aov(obs_yield ~ block_num + amt_fert, data=corn))
+```
+
+The sum of squares associated with variation: between blocks is 6745, with nitrogen is 5819, and with departures from additivity is 16930.
+
+
+### Part B
+
+Since the block number factor is significant at level $\alpha=0.05$ blocking does appear to have been effective in this experiment.($p=0.000625$)
+
+### Part C
+
+```{r}
+# make sequence of gammas and resy df to hold data
+gamma_nums <- seq(1,30,by=0.1)
+resy <- data.frame(
+  gammas =gamma_nums, 
+  rss = rep(0, length(gamma_nums)))
+# function that gives the residual sums of squares
+get_rss <- function(the_gamma){
+  anova(lm(obs_yield ~ log(the_gamma+amt_fert), data=corn))["Residuals", "Sum Sq"]
+}
+# use map to combine feed gamma values into rss function
+resy$rss <- map_dbl(resy$gammas, ~get_rss(.x))
+# find least squares estimate
+(lse <- resy$gammas[which(resy$rss==min(resy$rss))])
+# make plot
+ggplot(resy)+ 
+  geom_point(data=resy,aes(x=gammas, y=rss), color="purple")+
+  theme_light()+
+  ggtitle("Residual Sum of Squares vs. Gammas")+
+  xlab("Gamma")+
+  ylab("Residual Sum of Squares")
+```
+
+The least squares estimate is 4.3.
+
+### Part D
+
+```{r}
+mod <- lm(obs_yield ~ log(lse+ amt_fert), data=corn)
+the_bc <- boxcox(mod)#, lambda = seq(0.5,2.5, by=0.1))
+(mle_lambda <- the_bc$x[which(the_bc$y==max(the_bc$y))])
+```
+
+The model in C cannot be substantially improved by response transformation using the Box-Cox method. Though $\hat{\lambda}_{MLE}=1.878788$, $1$ is within our $95\%$ confidence interval. 
+
+Since $\lambda=1$ is equivalent to using the original data this tells us that the transformation is unnecessary. 
+
+### (Part D Continued)
+
+```{r}
+# transform data
+transformed <- ((corn$obs_yield^mle_lambda)-1)/mle_lambda
+# original plot
+p_before <- ggplot()+
+  geom_point(aes(x=log(lse+corn$amt_fert), y=corn$obs_yield), color="red")+
+    stat_smooth(aes(x=log(lse+corn$amt_fert), y=corn$obs_yield), color="black", method = "lm", se=FALSE)+
+  theme_light()+
+  ggtitle("Before Transformation")+
+  ylab("untransformed yield")+
+  xlab("log(Nitrogen + LSE)")
+# plot with transformed data
+p_after <- ggplot()+
+  geom_point(aes(x=log(lse+corn$amt_fert), y=transformed), color="blue")+
+  stat_smooth(aes(x=log(lse+corn$amt_fert), y=transformed),color="black", method = "lm", se=FALSE)+
+  theme_light()+
+  ggtitle("After Transformation")+
+  xlab("log(Nitrogen + LSE)")+
+  ylab("transformed yield")
+# arrange
+ggarrange(p_before, p_after, ncol=2, nrow = 1)
+
+```
+
+
+Just to be thorough I have created plots with transformed and untransformed data. As you can see, the shape of the data is approximately the same. This further provides evidence against using a Box-Cox transformation.
+
+### Part E
+
+Based on my analysis higher amounts of Nitrogen fertilizer appear to be associated with greater corn yield, after accounting for differences between blocks. 

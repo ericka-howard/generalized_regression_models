@@ -1,0 +1,53 @@
+---
+title: "problem2"
+author: "Ericka Smith"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Goal: Determine effects of temperature and storage time on the loss of ascorbic acid in snap beans
+
+* harvested before 8am
+* quick frozen by noon
+* three packages assigned at random to each temp and storage-line combo
+
+```{r libraries}
+library(tidyverse)
+library(magrittr)
+```
+
+```{r data}
+beans <- data.frame(
+  temps = c(0, 10, 20, 0, 10, 20, 0, 10, 20, 0, 10, 20),
+  weeks = c(2,2,2,4,4,4,6,6,6,8,8,8),
+  aa_loss = c(45,45,34,47,43,28,46,41,21,46,37,16)
+)
+beans$temps %<>% factor()
+```
+
+
+### Part A
+
+(Write down the model and the score equations)
+temp is a factor and storage time is a variate
+
+```{r model}
+mod2 <- glm(aa_loss ~ temps:weeks, family=gaussian(link = "log"), data = beans)
+summary(mod2)
+```
+
+
+### Part B
+
+```{r}
+# just half life
+```
+
+
+## Problem 3
+
+Based off of this model we can say that there may be some correlation between education and extroversion based on the change in p-value and estimate for x1 (education) when it is regressed with x2 (extroversion) vs. when it is not included. However the difference is quite small and in both models education is not a significant predictor of sales performance, while extroversion is a significant predictor. This makes it difficult to get any good information about x2 (education) because it does not have evidence of a relationship with our y variable (sales performance).
