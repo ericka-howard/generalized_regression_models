@@ -1,0 +1,131 @@
+---
+title: "problem_2"
+author: "Ericka Smith"
+date: "11/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+Load Data: 
+
+```{r}
+galaxy <- read.table("~/generalized_regression_models/midterm/galaxy.txt", quote="\"", comment.char="")
+# change row and column names to fit given data
+row.names(galaxy) <- seq(18, 1, by=-1)
+names(galaxy) <- seq(1, 15, by=1)
+# format for glm()
+galaxy_long <- galaxy %>% pivot_longer(c("1", "2", "3", "4",
+                                         "5", "6", "7", "8",
+                                         "9", "10", "11", "12",
+                                         "13", "14", "15"),
+                                       names_to = "redshift", 
+                                       values_to = "count") %>%
+  mutate(brightness = rep(18:1, each=15))
+galaxy_long$redshift <- as.integer(galaxy_long$redshift)
+```
+
+## Part A
+
+#### Model 1: linear in $x_1$ and $x_2$
+
+Create Model:
+
+```{r}
+linear <- glm(count ~
+                redshift +
+                brightness, 
+              family=poisson(link=log), 
+              data=galaxy_long)
+summary(linear)
+```
+
+Residual Analysis:
+
+```{r}
+glm.evaluate=linear
+
+rp=resid(glm.evaluate, "pearson")
+rd=resid(glm.evaluate, "deviance")
+rw=resid(glm.evaluate, "working")
+rs=rstudent(glm.evaluate)
+ra=3*(glm.evaluate$y^{2/3}-glm.evaluate$fit^{2/3})/glm.evaluate$fit^{1/6}/2
+
+par(mfrow=c(2,3))
+plot(glm.evaluate$fit,rp, main="Pearson")
+plot(glm.evaluate$fit,rd, main = "deviance")
+plot(glm.evaluate$fit,rw, main="working")
+plot(glm.evaluate$fit,rs, main="student")
+plot(glm.evaluate$fit,ra, main="ra")
+plot(hatvalues(glm.evaluate), type="h", main="hat")
+```
+
+#### Model 2: quadratic in $x_1$ and $x_2$
+
+Create Model:
+
+```{r}
+quadratic <- glm(count ~
+                   poly(redshift, 2) +
+                   poly(brightness, 2),
+                 family=poisson(link=log),
+                 data=galaxy_long)
+summary(quadratic)
+```
+
+Residual Analysis:
+
+```{r}
+glm.evaluate=quadratic
+
+rp=resid(glm.evaluate, "pearson")
+rd=resid(glm.evaluate, "deviance")
+rw=resid(glm.evaluate, "working")
+rs=rstudent(glm.evaluate)
+ra=3*(glm.evaluate$y^{2/3}-glm.evaluate$fit^{2/3})/glm.evaluate$fit^{1/6}/2
+
+par(mfrow=c(2,3))
+plot(glm.evaluate$fit,rp, main="Pearson")
+plot(glm.evaluate$fit,rd, main = "deviance")
+plot(glm.evaluate$fit,rw, main="working")
+plot(glm.evaluate$fit,rs, main="student")
+plot(glm.evaluate$fit,ra, main="ra")
+plot(hatvalues(glm.evaluate), type="h", main="hat")
+```
+
+
+#### Model 3: cubic in $x_1$ and $x_2$
+
+Create Model:
+
+```{r}
+cubic <- glm(count ~ 
+                poly(redshift, 3) + 
+                poly(brightness, 3),
+              family=poisson(link=log), 
+              data=galaxy_long)
+summary(cubic)
+```
+
+Residual Analysis:
+
+```{r}
+glm.evaluate=cubic
+
+rp=resid(glm.evaluate, "pearson")
+rd=resid(glm.evaluate, "deviance")
+rw=resid(glm.evaluate, "working")
+rs=rstudent(glm.evaluate)
+ra=3*(glm.evaluate$y^{2/3}-glm.evaluate$fit^{2/3})/glm.evaluate$fit^{1/6}/2
+
+par(mfrow=c(2,3))
+plot(glm.evaluate$fit,rp, main="Pearson")
+plot(glm.evaluate$fit,rd, main = "deviance")
+plot(glm.evaluate$fit,rw, main="working")
+plot(glm.evaluate$fit,rs, main="student")
+plot(glm.evaluate$fit,ra, main="ra")
+plot(hatvalues(glm.evaluate), type="h", main="hat")
+```

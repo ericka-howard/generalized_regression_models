@@ -1,0 +1,96 @@
+---
+title: "Problem 1"
+author: "Ericka Smith"
+date: "11/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(magrittr)
+```
+
+Load and manipulate data
+
+```{r}
+birth <- read.table("C:/Users/erick/Downloads/birth.txt", quote="\"", stringsAsFactors=TRUE)
+# fix column names
+names(birth) <- c("family_size", "birth_order", "MM", "MF", "FM", "FF")
+# make sex sequence a variable
+birth_long <- birth %>% pivot_longer(c("MM", "MF", "FM", "FF"), names_to = "sex_seq", values_to = "response")
+```
+
+## Part A
+
+#### i)
+
+```{r}
+modi <- lm(response~family_size + birth_order + sex_seq, data=birth_long)
+deviance(modi)
+```
+
+#### ii)
+
+First create a dataset with birth order reversed.
+
+```{r}
+birth_reversed <- birth_long %>%
+  mutate(birth_order = recode(birth_order, 
+                              "1-2" = "2-1",
+                              "2-3" = "3-2",
+                              "3-4" = "4-3",
+                              "4-5" = "5-4",
+                              "5-6" = "6-5"),
+         sex_seq = recode(sex_seq,
+                          "MF" = "FM",
+                          "FM" = "MF"))
+```
+
+Now find the residual sum of squares.
+
+```{r}
+modii <- lm(response~family_size + birth_order + sex_seq, data=birth_reversed)
+deviance(modii)
+```
+
+#### iii)
+
+```{r}
+modiii <- lm(response~family_size*birth_order + sex_seq, data=birth_long)
+deviance(modiii)
+```
+
+#### iv)
+
+```{r}
+modiv <- lm(response~family_size*birth_order + sex_seq, data=birth_reversed)
+deviance(modiv)
+```
+
+## Part B
+
+```{r}
+summary(modi)
+summary(modii)
+```
+
+These models are the same except for the interpretation of them. The sex sequence is not significant in either model, only the birth order is. Since the birth order has the same levels just with different titles, this makes sense. For the second model you would talk about the distance in time from the second child to the first child. In the second model you'd talk about the distance in teim from the first child to the second child. These are the same values. 
+
+## Part C
+
+```{r}
+plot(modi)
+
+
+
+```
+
+
+
+
+(c) Comment also on any unexpected or unusual eects. As part of this analysis, you
+should rst check to see whether transformation might be helpful.
+(d) Give a one-paragraph summary in your own words of the main patterns of varia-
+tion in these data.
+
