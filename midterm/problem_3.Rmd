@@ -1,0 +1,57 @@
+---
+title: "problem_3"
+author: "Ericka Smith"
+date: "11/5/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(magrittr)
+```
+
+Load and manipulate data:
+
+```{r}
+cotton <- read.table("~/generalized_regression_models/midterm/cotton.txt", quote="\"")
+names(cotton) <- c("affected", "not_affected", "race", "sex", "smoking", "employment", "dust")
+cotton <- cotton %>%
+  mutate(race = recode(race,
+                       "1" = "w",
+                       "2" = "nw"),
+         sex = recode(sex,
+                      "1" = "m",
+                      "2" = "f")) %>% 
+  pivot_longer(c("affected", "not_affected"), names_to = "byss_prev", values_to = "count") %>%
+  mutate(byss_prev = recode(byss_prev,
+                            "affected" = "1",
+                            "not_affected" = "0")) %>%
+  uncount(weights = count)
+cotton$byss_prev <- as.integer(cotton$byss_prev)
+```
+
+
+## Part A
+
+```{r}
+fit <- glm(byss_prev~., family = binomial, data=cotton)
+summary(fit)
+```
+
+Based on these results smoking, employment, and dust are significant predictors for being affected by bysinnosis ($\alpha = 0.05$, $p_{smoking}=0.00112$, $p_{employment}=0.00031$, $p_{dust}<2*10^{-16}$)
+
+The residual degrees of freedom is calculated by taking $df_{saturated}-df_{proposed}$ where $df_{saturated}$ is for the saturated model, which assumes $n=5419$ parameters, and $df_{proposed}$ is for the proposed model and assumes $p+1= 5+1 =6$ parameters. So we get:
+
+$$
+df_{saturated}-df_{proposed}=5419-6=5413
+$$
+
+## Part B
+
+The regression coefficient of sex is 0.25290. This can be interpreted as the expected change in log odds (log odds of being affected as compared to not being affected) for a a male as opposed to a female. The odds ratio can the be calculated by exponentiating this value to get 1.287754, which means that we expect to see about **28.8% increase in the odds of being affected by bysinnosis for males over females.**
+
+## Part C
+
+
+

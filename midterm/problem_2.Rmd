@@ -129,3 +129,20 @@ plot(glm.evaluate$fit,rs, main="student")
 plot(glm.evaluate$fit,ra, main="ra")
 plot(hatvalues(glm.evaluate), type="h", main="hat")
 ```
+
+## Part B
+
+```{r}
+linear$aic
+coef(linear)
+
+
+quadratic$aic
+coef(quadratic)
+
+cubic$aic
+coef(cubic)
+```
+
+
+
