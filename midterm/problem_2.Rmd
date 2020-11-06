@@ -144,5 +144,10 @@ cubic$aic
 coef(cubic)
 ```
 
+Based on the plots, the estimated regression coefficients and AIC values, the quadratic and cubic models appear most appropriate. The quadratic model just barely edges the cubic model out though, in part because the coefficients make a little more intuitive sense but also because the AIC is slightly smaller. Here is a summary of the fit of the model:
+
+```{r}
+summary(linear)
+```
 
 

@@ -51,7 +51,61 @@ $$
 
 The regression coefficient of sex is 0.25290. This can be interpreted as the expected change in log odds (log odds of being affected as compared to not being affected) for a a male as opposed to a female. The odds ratio can the be calculated by exponentiating this value to get 1.287754, which means that we expect to see about **28.8% increase in the odds of being affected by bysinnosis for males over females.**
 
+sexm          0.2590     0.2116   
+
+A 90% confidence interval for the odds ratio (males vs. females) of contracting byssinosis is as follows:
+
+$$
+0.2590 \pm 1.65\frac{0.2116}{\sqrt(5419)}
+$$
+
+$$
+0.2590 \pm 0.004743
+$$
+
+$$
+(0.254257,0.263743)
+$$
+
+$$
+(e^{0.254257},e^{0.263743})
+$$
+
+$$
+(1.289503,1.301794)
+$$
+
 ## Part C
 
+The excess risk assoicated with cotton dust:
+dust          1.3751     0.1155  11.901  < 2e-16
 
 
+
+The regression coefficient of dust is 1.3751. This can be interpreted as the expected change in log odds (log odds of being affected as compared to not being affected) for a one step increase in dust level. The odds ratio can the be calculated by exponentiating this value to get 3.955472, which means that **we expect each one step increase in dustiness of work environment level to have an almost 4 times excess risk of being affected by bysinnosis.**
+
+A 90% confidence interval for the excess risk of contracting byssinosis due to increased dustiness is as follows:
+
+$$
+1.3751 \pm 1.65\frac{0.1155}{\sqrt(5419)}
+$$
+
+$$
+1.3751 \pm 0.00259
+$$
+
+$$
+(1.37251,1.37769)
+$$
+
+$$
+(e^{1.37251},e^{1.37769})
+$$
+
+$$
+(3.945241,3.96573)
+$$
+
+## Part D
+
+Based on this analysis I can conclude that increased smoking habits and increased length of employment are risk factors for bysinnosis. By far the predictor with the greatest effect though is the dustiness of the work environment.

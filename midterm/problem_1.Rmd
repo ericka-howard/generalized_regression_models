@@ -80,17 +80,16 @@ These models are the same except for the interpretation of them. The sex sequenc
 ## Part C
 
 ```{r}
-plot(modi)
-
-
-
+summary(modi)
+logmodi <- lm(log(response)~family_size + birth_order + sex_seq, data=birth_long)
+summary(logmodi)
+# summary(modii)
+# logmodiii <- lm(log(response)~family_size*birth_order + sex_seq, data=birth_reversed)
+# summary(logmodiii)
 ```
 
+I don't notice anything particularly unusual. I tried a transformation and found that transforming the response variable results in a higher adjusted R-squared and a higher F-statistic. The untransformed model is still a good fit but the transformed one is better.
 
+## Part D
 
-
-(c) Comment also on any unexpected or unusual eects. As part of this analysis, you
-should rst check to see whether transformation might be helpful.
-(d) Give a one-paragraph summary in your own words of the main patterns of varia-
-tion in these data.
-
+This data is really interesting for a few reasons. First, that the sex sequence doesn't have any significant effect on the mean interval in months between successive births in the same family. Family size and birth order however are both significant ($\alpha=0.05$). As family size increases we see a decrease in mean interval between successive births. Conversely, it seems that there is a greater time duration between later birth orders (i.e. 5-6) as compared to earlier birth orders (i.e. 2-3).
