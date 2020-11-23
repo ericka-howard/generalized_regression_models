@@ -1,0 +1,31 @@
+---
+title: "Initial EDA Project"
+author: "Ericka Smith"
+date: "11/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(magrittr)
+```
+
+```{r}
+cv19 <- read.csv("COVID-19_Case_Surveillance_Public_Use_Data.csv")
+cv19_tidy <- read_csv("COVID-19_Case_Surveillance_Public_Use_Data.csv",
+                      col_types = cols(pos_spec_dt = col_date(format="")))
+
+test_data <- cv19_tidy[,1]
+test_data$cdc_report_dt %<>% factor()
+levels(test_data$cdc_report_dt) <- seq(1, 286, by=1)
+levels(test_data$cdc_report_dt)
+tabl <- as.data.frame(table(test_data$cdc_report_dt))
+```
+
+```{r}
+mod <- glm(Var1~Freq, data=tabl, family="poisson")
+```
+
+
