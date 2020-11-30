@@ -10,22 +10,107 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
 library(magrittr)
+library(readxl)
+library(MASS)
+library(car)
+# zero infl library(pscl)
+library(robust)
+library(GGally)
+library(rcompanion)
+library(hermite)
+library(gee)
 ```
 
-```{r}
-cv19 <- read.csv("COVID-19_Case_Surveillance_Public_Use_Data.csv")
-cv19_tidy <- read_csv("COVID-19_Case_Surveillance_Public_Use_Data.csv",
-                      col_types = cols(pos_spec_dt = col_date(format="")))
+```{r load-data, warning=FALSE, message=FALSE}
+covid_counts <- read_xlsx("../data/biweekly-counts-rates-by-geography-nov-23.xlsx",
+                    col_types = c("text", "date", "date", 
+                                  "numeric", "text", "numeric", "text",
+                                  "numeric", "text", "numeric", "text",
+                                  "numeric", "numeric"))
+covid_demos <- read_xlsx("../data/total-counts-by-date-city-demography-nov-23.xlsx")
 
-test_data <- cv19_tidy[,1]
-test_data$cdc_report_dt %<>% factor()
-levels(test_data$cdc_report_dt) <- seq(1, 286, by=1)
-levels(test_data$cdc_report_dt)
-tabl <- as.data.frame(table(test_data$cdc_report_dt))
+
 ```
 
+```{r clean-data}
+covid_counts <- covid_counts[, c("City", "Week_Start", "People_Tested_Rate", "Positives", "Deaths")]
+covid_counts_clean <- covid_counts %>%
+  mutate(City = factor(City),
+         People_Tested_Rate = as.numeric(People_Tested_Rate)/100000) 
+
+covid_demos <- covid_demos[, c("Age_Group", "City", "Population")]
+covid_demos_clean <- covid_demos %>%
+  filter(City != "All King County") %>%
+  mutate(City = factor(City),
+         Age_Group = factor(Age_Group))
+
+covid <- covid_counts_clean %>%
+  left_join(covid_demos_clean, by = "City")
+```
+
+```{r look-at-data}
+ggplot(covid, aes(Week_Start, Positives)) + 
+  geom_point(alpha=0.1) +
+  labs(x="",
+       y="Weekly Positives")+
+  theme_light()+
+  theme(legend.position = "none")
+
+ggplot(covid, aes(Positives)) + 
+  geom_histogram() +
+  labs(y="",
+       x="Weekly Positives")+
+  theme_light()+
+  theme(legend.position = "none")
+```
+
+
 ```{r}
-mod <- glm(Var1~Freq, data=tabl, family="poisson")
+# pois_mod <- glm(Positives~Week_Start+People_Tested_Rate+Deaths+Death_Rate+Positive_Rate, data=covid, family="poisson")
+pois_mod <- glm(Positives~.-City, data=covid, family="poisson")
+
+summary(pois_mod)
+
+Anova(pois_mod,
+      type="II",
+      test="LR")
+```
+
+Since residual deviance > df, this model is overdispersed. On to nb or quasipoisson
+
+```{r}
+#nb_mod <- glm.nb(Positives~Week_Start+People_Tested_Rate, data=covid)
+nb_mod <- glm.nb(Positives~.-City, data = covid, control = glm.control(maxit=75))
+summary(nb_mod)
+
+Anova(nb_mod,
+      type="II",
+      test="LR")
+```
+
+
+```{r}
+# qp_mod = glm(Positives~Week_Start+People_Tested_Rate, data=covid,
+#                family="quasipoisson")
+qp_mod = glm(Positives~.-City, data=covid,
+               family=quasipoisson(link = "log"))
+summary(qp_mod)
+
+Anova(qp_mod,
+      type="II",
+      test="LR")
+```
+
+Based on "How should we model overdispersed count data?" paper suggests that negative binomial may be better for my scenario because it gives smaller values more weight relative to quasi-Poisson and allows smaller values to have a greatere effect on adjustments for negative binomial regression
+
+
+
+
+Trying to deal with time series aspect
+
+```{r fig.height=10, fig.width=10}
+covid_ts <- as.ts(covid)
+acf(apply(covid_ts, 2, scale))
 ```
 
 
