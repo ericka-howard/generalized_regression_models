@@ -2,7 +2,9 @@
 title: "Initial EDA Project"
 author: "Ericka Smith"
 date: "11/22/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
@@ -22,15 +24,14 @@ library(gee)
 ```
 
 ```{r load-data, warning=FALSE, message=FALSE}
-covid_counts <- read_xlsx("../data/biweekly-counts-rates-by-geography-nov-23.xlsx",
+covid_counts <- read_xlsx("../data/biweekly-counts-rates-by-geography-dec-8.xlsx",
                     col_types = c("text", "date", "date", 
                                   "numeric", "text", "numeric", "text",
                                   "numeric", "text", "numeric", "text",
                                   "numeric", "numeric"))
-covid_demos <- read_xlsx("../data/total-counts-by-date-city-demography-nov-23.xlsx")
-
-
+covid_demos <- read_xlsx("../data/total-counts-by-date-city-demography-dec-8.xlsx")
 ```
+
 
 ```{r clean-data}
 covid_counts <- covid_counts[, c("City", "Week_Start", "People_Tested_Rate", "Positives", "Deaths")]
@@ -48,24 +49,30 @@ covid <- covid_counts_clean %>%
   left_join(covid_demos_clean, by = "City")
 ```
 
-```{r look-at-data}
-ggplot(covid, aes(Week_Start, Positives)) + 
-  geom_point(alpha=0.1) +
-  labs(x="",
-       y="Weekly Positives")+
+```{r look-at-data, fig.width=6, fig.height=4}
+ggplot(covid) + 
+  geom_point(aes(Week_Start, Positives), alpha=0.01) +
+  labs(title= "Biweekly Counts of Positive COVID-19 Tests",
+       subtitle = "Cities in King County from January 29, 2020 to December 8, 2020",
+       caption= "Source: Washington State Department of Health",
+       x="",
+       y="Biweekly Positives\n")+
   theme_light()+
   theme(legend.position = "none")
 
-ggplot(covid, aes(Positives)) + 
-  geom_histogram() +
+covid %>%
+  filter(Positives <=750) %>%
+ggplot() + 
+  geom_boxplot(aes(Positives)) +
   labs(y="",
-       x="Weekly Positives")+
+       x="Biweekly Positives")+
   theme_light()+
   theme(legend.position = "none")
 ```
 
 
-```{r}
+
+```{r fig.width=5, fig.height=3.5}
 # pois_mod <- glm(Positives~Week_Start+People_Tested_Rate+Deaths+Death_Rate+Positive_Rate, data=covid, family="poisson")
 pois_mod <- glm(Positives~.-City, data=covid, family="poisson")
 
@@ -74,11 +81,27 @@ summary(pois_mod)
 Anova(pois_mod,
       type="II",
       test="LR")
+
+glm.evaluate=pois_mod
+
+rp=resid(glm.evaluate, "pearson")
+rd=resid(glm.evaluate, "deviance")
+rw=resid(glm.evaluate, "working")
+rs=rstudent(glm.evaluate)
+ra=3*(glm.evaluate$y^{2/3}-glm.evaluate$fit^{2/3})/glm.evaluate$fit^{1/6}/2
+
+par(mfrow=c(2,3))
+plot(glm.evaluate$fit,rp, main="Pearson")
+plot(glm.evaluate$fit,rd, main = "deviance")
+plot(glm.evaluate$fit,rw, main="working")
+plot(glm.evaluate$fit,rs, main="student")
+plot(glm.evaluate$fit,ra, main="ra")
+plot(hatvalues(glm.evaluate), type="h", main="hat")
 ```
 
 Since residual deviance > df, this model is overdispersed. On to nb or quasipoisson
 
-```{r}
+```{r fig.width=5, fig.height=3.5}
 #nb_mod <- glm.nb(Positives~Week_Start+People_Tested_Rate, data=covid)
 nb_mod <- glm.nb(Positives~.-City, data = covid, control = glm.control(maxit=75))
 summary(nb_mod)
@@ -86,10 +109,26 @@ summary(nb_mod)
 Anova(nb_mod,
       type="II",
       test="LR")
+
+glm.evaluate=nb_mod
+
+rp=resid(glm.evaluate, "pearson")
+rd=resid(glm.evaluate, "deviance")
+rw=resid(glm.evaluate, "working")
+rs=rstudent(glm.evaluate)
+ra=3*(glm.evaluate$y^{2/3}-glm.evaluate$fit^{2/3})/glm.evaluate$fit^{1/6}/2
+
+par(mfrow=c(2,3))
+plot(glm.evaluate$fit,rp, main="Pearson")
+plot(glm.evaluate$fit,rd, main = "deviance")
+plot(glm.evaluate$fit,rw, main="working")
+plot(glm.evaluate$fit,rs, main="student")
+plot(glm.evaluate$fit,ra, main="ra")
+plot(hatvalues(glm.evaluate), type="h", main="hat")
 ```
 
 
-```{r}
+```{r fig.width=5, fig.height=3.5}
 # qp_mod = glm(Positives~Week_Start+People_Tested_Rate, data=covid,
 #                family="quasipoisson")
 qp_mod = glm(Positives~.-City, data=covid,
@@ -99,18 +138,45 @@ summary(qp_mod)
 Anova(qp_mod,
       type="II",
       test="LR")
+
+glm.evaluate=qp_mod
+
+rp=resid(glm.evaluate, "pearson")
+rd=resid(glm.evaluate, "deviance")
+rw=resid(glm.evaluate, "working")
+rs=rstudent(glm.evaluate)
+ra=3*(glm.evaluate$y^{2/3}-glm.evaluate$fit^{2/3})/glm.evaluate$fit^{1/6}/2
+
+par(mfrow=c(2,3))
+plot(glm.evaluate$fit,rp, main="Pearson")
+plot(glm.evaluate$fit,rd, main = "deviance")
+plot(glm.evaluate$fit,rw, main="working")
+plot(glm.evaluate$fit,rs, main="student")
+plot(glm.evaluate$fit,ra, main="ra")
+plot(hatvalues(glm.evaluate), type="h", main="hat")
 ```
 
-Based on "How should we model overdispersed count data?" paper suggests that negative binomial may be better for my scenario because it gives smaller values more weight relative to quasi-Poisson and allows smaller values to have a greatere effect on adjustments for negative binomial regression
+Based on "How should we model overdispersed count data?" paper suggests that negative binomial may be better for my scenario because it gives smaller values more weight relative to quasi-Poisson and allows smaller values to have a greater effect on adjustments for negative binomial regression
 
 
 
+```{r fig.width=12, fig.height=2.5, fig.width=6}
+par(mfrow=c(1,3))
+qqnorm(pois_mod$fitted.values, main="Poisson")
+qqline(pois_mod$fitted.values)
 
-Trying to deal with time series aspect
+qqnorm(qp_mod$fitted.values, main="Quasi-Poisson")
+qqline(qp_mod$fitted.values)
 
-```{r fig.height=10, fig.width=10}
-covid_ts <- as.ts(covid)
-acf(apply(covid_ts, 2, scale))
+qqnorm(nb_mod$fitted.values, main="Negative Binomial")
+qqline(nb_mod$fitted.values)
+```
+
+
+```{r}
+outlierTest(pois_mod)
+outlierTest(qp_mod)
+outlierTest(nb_mod)
 ```
 
 
