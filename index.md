@@ -1,37 +1,4 @@
-## Welcome to GitHub Pages
+## A Comparison of Negative Binomial, Quasi-Poisson, and Poisson Regression for COVID-19 Cases
 
-You can use the [editor on GitHub](https://github.com/erickabsmith/generalized_regression_models/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+This project investigates factors that may help explain positive COVID-19 case count fluctuations from late January to early December of 2020 in King County, Washington. Three primary models were explored: Poisson, quasi-Poisson, and negative binomial. The negative binomial model was determined to be the best fit, though delving further into zero-inflated models and serial autocorrelation is suggested. City population size, rate of people tested, number of deaths, and week start date were all consistently significant (alpha=0.05) predictors in the models. Age group was more complex but the results affirm the idea that older age groups, particularly individuals 70 and above, may be more susceptible to the virus.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/erickabsmith/generalized_regression_models/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
