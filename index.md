@@ -1,4 +1,4 @@
-## COVID-19 Cases in King County, Washington
+# COVID-19 Cases in King County, Washington
 
 This project investigates factors that may help explain positive COVID-19 case count fluctuations from late January to early December of 2020 in King County, Washington. 
 
